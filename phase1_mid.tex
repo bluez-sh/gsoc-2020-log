@@ -1,0 +1,94 @@
+\documentclass{beamer}
+
+\usepackage{verbatim}
+
+\title{RFDev: Linux Kernel Driver for Routing Fabrics in AXIOM Beta Main Board}
+\subtitle{GSoC 2020 - Phase 1 - Mid}
+\author{Swaraj Hota}
+\date
+
+\begin{document}
+{
+	\setbeamertemplate{footline}{}
+	\frame{\titlepage}
+}
+
+\section*{Contents}
+
+\begin{frame}{Contents}
+	\tableofcontents
+\end{frame}
+
+\section{Progress}
+
+\subsection{Claim PIC addresses}
+
+\begin{frame}[fragile]{Claim PIC addresses}
+\begin{itemize}
+\item Firstly, basic i2c driver code was added
+\item The driver claims i2c addresses 0x40-0x4f, which PIC responds to
+\item A device tree entry was added for this (inside the entry for i2cbus-2):
+\begin{verbatim}
+pic@40 {
+	compatible = "apertus,pic-rf-interface";
+	reg = <0x40 0x10 0x60 0x10>;
+	#address-cells = <1>;
+	#size-cells = <1>;
+};
+\end{verbatim}
+\item Only 0x40 claimed by default, others claimed through ``dummy clients"
+\end{itemize}
+\end{frame}
+
+\subsection{Create a Sysfs interface}
+
+\begin{frame}{Create a Sysfs interface}
+\begin{itemize}
+\item A group of attributes for the driver found in /sys/devices/rfdev/
+\item Currently, the group contains only ``idcode" attribute
+\item Reading out idcode is the first successful test for communicating with
+	the routing fabrics through the PIC
+\item Other useful attributes can be added in this group (which are not provided
+	by FPGA Manager)
+\end{itemize}
+\end{frame}
+
+\subsection{Integrate FPGA Manager}
+
+\begin{frame}[fragile]{Integrate FPGA Manager}
+\begin{itemize}
+\item A Linux Driver Framework which will allow us to easily upload firmware
+	images into the MachXO2's SRAM
+\item Once registered, provides a sysfs interface inside /sys/class/fpga\_manager/fpga\#/
+\item ``firmware" attribute will allow us to do something like:
+\begin{verbatim}
+echo firmware.bin >
+/sys/class/fpga_manager/fpga1/firmware
+\end{verbatim}
+\item API functions: write\_init, write and write\_complete, do the uploading
+\item ``state" attribute will allow us to read the current state of the FPGA 
+\end{itemize}
+\end{frame}
+
+\section{Upcoming}
+
+\begin{frame}{Upcoming}
+\begin{itemize}
+\item To fill in the API functions by FPGA Manager with appropriate read/write
+	commands to the PIC, and get a firmware uploaded successfully
+\item To research and find a suitable way to implement a JTAG interface
+\item JTAG interface will allow software like OpenOCD to debug the routing fabrics
+	as well as upload/flash new firmware
+\item To have a checksum/hash reading attribute that helps us to know which firmware
+	is uploaded
+\end{itemize}
+\end{frame}
+
+\section{Code}
+
+\begin{frame}{Code}
+Link to Github repository:
+\url{https://github.com/Swaraj1998/axiom-beta-rfdev.git}
+\end{frame}
+
+\end{document}
